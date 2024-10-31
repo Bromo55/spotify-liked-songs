@@ -9,9 +9,8 @@ load_dotenv()
 
 # Configuración de autenticación
 client_id = os.getenv('SPOTIPY_CLIENT_ID')
-client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
-redirect_uri = 'https://spotify-liked-songs.streamlit.app'  # Cambia esto según tu configuración
-
+client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')  # Cambia esto según tu configuración
+redirect_uri = 'https://spotify-liked-songs.streamlit.app'
 # Cargar el mapeo de géneros desde el archivo JSON
 with open('genres_map.json', 'r') as f:
     genre_to_playlist = json.load(f)
@@ -21,7 +20,7 @@ st.title("Music GenAi Magic Turbo v4")
 st.write("Genera listas de reproducción automáticamente basadas en tus canciones marcadas como 'Me gusta'.")
 
 # Generar la URL de autenticación
-auth_url = f"https://accounts.spotify.com/authorize?client_id={client_id}&response_type=code&redirect_uri={redirect_uri}&scope=playlist-modify-public user-library-read"
+auth_url = f"https://accounts.spotify.com/authorize?client_id={client_id}&response_type=code&redirect_uri={redirect_uri}&scope=user-library-read%20playlist-modify-public"
 
 # Mostrar el enlace para iniciar la autenticación
 st.markdown(f"[Iniciar Autenticación]({auth_url})", unsafe_allow_html=True)
@@ -30,7 +29,6 @@ st.markdown(f"[Iniciar Autenticación]({auth_url})", unsafe_allow_html=True)
 query_params = st.query_params
 if 'code' in query_params:
     code = query_params['code']  # Obtener el código de autorización
-    st.success(f"Código de autorización recibido: {code}")
 
     # Intercambiar el código por un token de acceso
     token_url = "https://accounts.spotify.com/api/token"
@@ -42,14 +40,11 @@ if 'code' in query_params:
         "client_secret": client_secret,
     }
 
-    st.success(f"Token data: {token_data}")
     response = requests.post(token_url, data=token_data)
     response_data = response.json()
 
     if 'access_token' in response_data:
         access_token = response_data['access_token']
-        st.success("Acceso autorizado. ¡Listo para hacer llamadas a la API!")
-        st.success(f"Access token: {access_token}")
 
         # Obtener el usuario actual
         user_url = "https://api.spotify.com/v1/me"
@@ -58,7 +53,7 @@ if 'code' in query_params:
 
         if user_response.status_code == 200:
             current_user = user_response.json()
-            st.success(f'Usuario actual: {current_user["display_name"]}')
+            st.success(f'oki bro {current_user["display_name"]} vamos a ello')
             # Mostrar la imagen del usuario
             if current_user['images']:
                 user_image_url = current_user['images'][0]['url']  # Obtener la primera imagen
@@ -72,14 +67,6 @@ if 'code' in query_params:
                 st.error(f"Error al obtener canciones: {results.status_code} - {results.json()}")
             else:
                 all_tracks = results.json().get('items', [])
-
-                if all_tracks:
-                    first_track = all_tracks[0]['track']  # Acceder a la primera canción
-                    track_name = first_track['name']       # Obtener el nombre de la canción
-                    artist_name = first_track['artists'][0]['name']  # Obtener el nombre del artista
-                    st.write(f'Primera canción: {track_name} de {artist_name}')
-                else:
-                    st.write("No hay canciones guardadas.")
 
             # Obtener todas las listas de reproducción del usuario
             playlists = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
