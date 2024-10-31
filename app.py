@@ -40,6 +40,19 @@ if st.button('Generar listas de reproducción'):
         ))
         if sp:
             st.success("Auth success")
+            current_user = sp.current_user()
+            if current_user:
+                st.write(f'Bienvenido, {current_user["display_name"]}!')
+
+                # Mostrar la imagen del usuario
+                if current_user['images']:
+                    user_image_url = current_user['images'][0]['url']  # Obtener la primera imagen
+                    st.image(user_image_url, width=100)  # Ajusta el tamaño según sea necesario
+                else:
+                    st.write("No hay imagen de perfil disponible.")
+            else:
+                st.error("No te conozco")
+
         else: 
             st.error("Auth error")
         # Obtener las canciones marcadas como 'Me gusta'
