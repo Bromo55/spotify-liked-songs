@@ -45,10 +45,21 @@ if st.button('Generar listas de reproducción'):
         # Obtener las canciones marcadas como 'Me gusta'
         results = sp.current_user_saved_tracks()
         all_tracks = results['items']
-    
+        
+        if all_tracks:
+            first_track = all_tracks[0]['track']  # Acceder a la primera canción
+            track_name = first_track['name']       # Obtener el nombre de la canción
+            artist_name = first_track['artists'][0]['name']  # Obtener el nombre del artista
+            st.write(f'Primera canción: {track_name} de {artist_name}')
+        else:
+            st.write("No hay canciones guardadas.")
+
         while results['next']:
             results = sp.next(results)
             all_tracks.extend(results['items'])
+        
+        if results:
+            st.success("Tengo material")
     
             # Obtener todas las listas de reproducción del usuario
         playlists = sp.current_user_playlists(limit=50)
