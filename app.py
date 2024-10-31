@@ -30,14 +30,18 @@ def is_track_in_playlist(playlist_id, track_id):
 # Botón de Streamlit para iniciar el proceso
 if st.button('Generar listas de reproducción'):
     try:
-            # Autenticación con Spotify
+        st.success("🐒 Working")
+        # Autenticación con Spotify
         sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
             client_id=client_id,
             client_secret=client_secret,
             redirect_uri=redirect_uri,
             scope='playlist-modify-public user-library-read'
         ))
-    
+        if sp:
+            st.success("Auth success")
+        else: 
+            st.error("Auth error")
         # Obtener las canciones marcadas como 'Me gusta'
         results = sp.current_user_saved_tracks()
         all_tracks = results['items']
@@ -49,7 +53,10 @@ if st.button('Generar listas de reproducción'):
             # Obtener todas las listas de reproducción del usuario
         playlists = sp.current_user_playlists(limit=50)
         playlist_map = {playlist['name'].lower(): playlist['id'] for playlist in playlists['items']}
-    
+
+        if playlists:
+            st.success("Playlists success")
+
         # Definir las listas de reproducción que necesitas
         required_playlists = ['dale weon', 'toy o no toy', 'canto do dusha', 'rapapolvo', 'k lo k', 'blackhole']
     
@@ -65,10 +72,6 @@ if st.button('Generar listas de reproducción'):
                 )
                 # Añadir al mapa de listas de reproducción
                 playlist_map[playlist_name] = new_playlist['id']
-    
-    
-    
-    
     
         # Crear la lista "Blackhole" si no existe
         if "blackhole" not in playlist_map:
