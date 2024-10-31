@@ -18,9 +18,8 @@ with open('genres_map.json', 'r') as f:
     genre_to_playlist = json.load(f)
 
 # Configuración de la aplicación de Streamlit
-st.title("Spotify Auto-List Generator")
+st.title("Music GenAi Magic Turbo v4")
 st.write("Genera listas de reproducción automáticamente basadas en tus canciones marcadas como 'Me gusta'.")
-st.write(f'Redirect URI: {redirect_uri}')  # Esto mostrará el URI en la interfaz de Streamlit
 
 # Autenticación con Spotify
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
@@ -46,9 +45,29 @@ if st.button('Generar listas de reproducción'):
         results = sp.next(results)
         all_tracks.extend(results['items'])
 
-    # Obtener todas las listas de reproducción del usuario
+        # Obtener todas las listas de reproducción del usuario
     playlists = sp.current_user_playlists(limit=50)
     playlist_map = {playlist['name'].lower(): playlist['id'] for playlist in playlists['items']}
+
+    # Definir las listas de reproducción que necesitas
+    required_playlists = ['dale weon', 'toy o no toy', 'canto do dusha', 'rapapolvo', 'k lo k', 'blackhole']
+
+    # Crear listas de reproducción que no existen
+    for playlist_name in required_playlists:
+        if playlist_name not in playlist_map:
+            # Crear la lista de reproducción
+            new_playlist = sp.user_playlist_create(
+                user=sp.me()['id'],
+                name=playlist_name,
+                public=True,
+                description=f'Playlist de género {playlist_name}'
+            )
+            # Añadir al mapa de listas de reproducción
+            playlist_map[playlist_name] = new_playlist['id']
+
+
+
+
 
     # Crear la lista "Blackhole" si no existe
     if "blackhole" not in playlist_map:
