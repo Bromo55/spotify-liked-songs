@@ -50,6 +50,7 @@ if 'code' in query_params:
         access_token = response_data['access_token']
         st.success("Acceso autorizado. ¡Listo para hacer llamadas a la API!")
         st.success(f"Access token: {access_token}")
+
         # Obtener el usuario actual
         user_url = "https://api.spotify.com/v1/me"
         headers = {"Authorization": f"Bearer {access_token}"}
@@ -67,16 +68,18 @@ if 'code' in query_params:
 
             # Obtener las canciones marcadas como 'Me gusta'
             results = requests.get("https://api.spotify.com/v1/me/tracks", headers=headers)
-            st.success(results)
-            all_tracks = results.json().get('items', [])
-
-            if all_tracks:
-                first_track = all_tracks[0]['track']  # Acceder a la primera canción
-                track_name = first_track['name']       # Obtener el nombre de la canción
-                artist_name = first_track['artists'][0]['name']  # Obtener el nombre del artista
-                st.write(f'Primera canción: {track_name} de {artist_name}')
+            if results.status_code != 200:
+                st.error(f"Error al obtener canciones: {results.status_code} - {results.json()}")
             else:
-                st.write("No hay canciones guardadas.")
+                all_tracks = results.json().get('items', [])
+
+                if all_tracks:
+                    first_track = all_tracks[0]['track']  # Acceder a la primera canción
+                    track_name = first_track['name']       # Obtener el nombre de la canción
+                    artist_name = first_track['artists'][0]['name']  # Obtener el nombre del artista
+                    st.write(f'Primera canción: {track_name} de {artist_name}')
+                else:
+                    st.write("No hay canciones guardadas.")
 
             # Obtener todas las listas de reproducción del usuario
             playlists = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
