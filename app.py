@@ -20,6 +20,7 @@ with open('genres_map.json', 'r') as f:
 # Configuración de la aplicación de Streamlit
 st.title("Spotify Auto-List Generator")
 st.write("Genera listas de reproducción automáticamente basadas en tus canciones marcadas como 'Me gusta'.")
+st.write(f'Redirect URI: {redirect_uri}')  # Esto mostrará el URI en la interfaz de Streamlit
 
 # Autenticación con Spotify
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
