@@ -11,7 +11,7 @@ load_dotenv()
 # Configuración de autenticación
 client_id = os.getenv('SPOTIPY_CLIENT_ID')
 client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
-redirect_uri = os.getenv('SPOTIPY_REDIRECT_URI')
+redirect_uri = 'https://spotify-liked-songs.streamlit.app/callback'  # Cambia esto según tu configuración
 
 # Cargar el mapeo de géneros desde el archivo JSON
 with open('genres_map.json', 'r') as f:
@@ -20,6 +20,12 @@ with open('genres_map.json', 'r') as f:
 # Configuración de la aplicación de Streamlit
 st.title("Music GenAi Magic Turbo v4")
 st.write("Genera listas de reproducción automáticamente basadas en tus canciones marcadas como 'Me gusta'.")
+
+# Generar la URL de autenticación
+auth_url = f"https://accounts.spotify.com/authorize?client_id={client_id}&response_type=code&redirect_uri={redirect_uri}&scope=playlist-modify-public user-library-read"
+
+# Mostrar el enlace para iniciar la autenticación
+st.markdown(f"[Iniciar Autenticación]({auth_url})", unsafe_allow_html=True)
 
 # Función para verificar si una canción ya está en una lista de reproducción
 def is_track_in_playlist(playlist_id, track_id):
@@ -38,29 +44,18 @@ if st.button('Generar listas de reproducción'):
             redirect_uri=redirect_uri,
             scope='playlist-modify-public user-library-read'
         ))
-        # Aquí deberías intentar obtener el usuario actual
-        st.success(f'Vamos a: {redirect_uri}')
 
+        # Obtener el usuario actual
         current_user = sp.current_user()
         st.success(f'Usuario actual: {current_user["display_name"]}')
-        if sp:
-            st.success("Auth success")
-            st.write(sp.current_user())  # Imprimir el contenido del usuario actual
-            current_user = sp.current_user()
-            if current_user:
-                st.write(f'Bienvenido, {current_user["display_name"]}!')
+        
+        # Mostrar la imagen del usuario
+        if current_user['images']:
+            user_image_url = current_user['images'][0]['url']  # Obtener la primera imagen
+            st.image(user_image_url, width=100)  # Ajusta el tamaño según sea necesario
+        else:
+            st.write("No hay imagen de perfil disponible.")
 
-                # Mostrar la imagen del usuario
-                if current_user['images']:
-                    user_image_url = current_user['images'][0]['url']  # Obtener la primera imagen
-                    st.image(user_image_url, width=100)  # Ajusta el tamaño según sea necesario
-                else:
-                    st.write("No hay imagen de perfil disponible.")
-            else:
-                st.error("No te conozco")
-
-        else: 
-            st.error("Auth error")
         # Obtener las canciones marcadas como 'Me gusta'
         results = sp.current_user_saved_tracks()
         all_tracks = results['items']
@@ -76,20 +71,14 @@ if st.button('Generar listas de reproducción'):
         while results['next']:
             results = sp.next(results)
             all_tracks.extend(results['items'])
-        
-        if results:
-            st.success("Tengo material")
-    
-            # Obtener todas las listas de reproducción del usuario
+
+        # Obtener todas las listas de reproducción del usuario
         playlists = sp.current_user_playlists(limit=50)
         playlist_map = {playlist['name'].lower(): playlist['id'] for playlist in playlists['items']}
 
-        if playlists:
-            st.success("Playlists success")
-
         # Definir las listas de reproducción que necesitas
         required_playlists = ['dale weon', 'toy o no toy', 'canto do dusha', 'rapapolvo', 'k lo k', 'blackhole']
-    
+        
         # Crear listas de reproducción que no existen
         for playlist_name in required_playlists:
             if playlist_name not in playlist_map:
@@ -102,7 +91,7 @@ if st.button('Generar listas de reproducción'):
                 )
                 # Añadir al mapa de listas de reproducción
                 playlist_map[playlist_name] = new_playlist['id']
-    
+
         # Crear la lista "Blackhole" si no existe
         if "blackhole" not in playlist_map:
             new_playlist = sp.user_playlist_create(
@@ -112,7 +101,7 @@ if st.button('Generar listas de reproducción'):
                 description="Canciones sin género o con géneros no clasificados"
             )
             playlist_map["blackhole"] = new_playlist['id']
-    
+
         # Procesar y asignar las canciones a listas basadas en el mapeo de géneros
         for item in all_tracks:
             track = item['track']
@@ -120,12 +109,12 @@ if st.button('Generar listas de reproducción'):
             track_id = track['id']
             artist_name = track['artists'][0]['name']
             artist_id = track['artists'][0]['id']
-    
+
             # Obtener géneros asociados al artista
             genres = sp.artist(artist_id)['genres']
             if not genres:
                 genres = ['Sin género']
-    
+
             # Contar a qué lista pertenece cada género
             playlist_count = {}
             for genre in genres:
@@ -133,7 +122,7 @@ if st.button('Generar listas de reproducción'):
                 for playlist, genre_list in genre_to_playlist.items():
                     if genre_lower in genre_list:
                         playlist_count[playlist] = playlist_count.get(playlist, 0) + 1
-    
+
             # Determinar la lista con la mayoría de géneros
             if playlist_count:
                 max_count = max(playlist_count.values())
@@ -141,7 +130,7 @@ if st.button('Generar listas de reproducción'):
                 target_playlist = possible_playlists[0]  # Elegir la primera en caso de empate
             else:
                 target_playlist = "Blackhole"
-    
+
             # Verificar si la canción ya está en la lista de reproducción
             if not is_track_in_playlist(playlist_map[target_playlist.lower()], track_id):
                 sp.playlist_add_items(playlist_map[target_playlist.lower()], [track_id])
