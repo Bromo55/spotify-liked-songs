@@ -10,7 +10,7 @@ load_dotenv()
 # Configuración de autenticación
 client_id = os.getenv('SPOTIPY_CLIENT_ID')
 client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
-redirect_uri = 'https://spotify-liked-songs.streamlit.app/'  # Cambia esto según tu configuración
+redirect_uri = 'https://spotify-liked-songs.streamlit.app'  # Cambia esto según tu configuración
 
 # Cargar el mapeo de géneros desde el archivo JSON
 with open('genres_map.json', 'r') as f:
