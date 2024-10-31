@@ -67,16 +67,19 @@ if code:
 
         # Obtener las canciones marcadas como 'Me gusta'
         results = requests.get('https://api.spotify.com/v1/me/tracks', headers=headers)
-        all_tracks = results.json()['items']
-
-        if all_tracks:
-            first_track = all_tracks[0]['track']  # Acceder a la primera canción
-            track_name = first_track['name']       # Obtener el nombre de la canción
-            artist_name = first_track['artists'][0]['name']  # Obtener el nombre del artista
-            st.write(f'Primera canción: {track_name} de {artist_name}')
+        
+        # Comprobar el estado de la respuesta
+        if results.status_code == 200:
+            all_tracks = results.json().get('items', [])
+            if all_tracks:
+                first_track = all_tracks[0]['track']
+                track_name = first_track['name']
+                artist_name = first_track['artists'][0]['name']
+                st.write(f'Primera canción: {track_name} de {artist_name}')
+            else:
+                st.write("No hay canciones guardadas.")
         else:
-            st.write("No hay canciones guardadas.")
-
+            st.error(f"Error al obtener canciones: {results.status_code} - {results.text}")
         # Obtener todas las listas de reproducción del usuario
         playlists_response = requests.get('https://api.spotify.com/v1/me/playlists', headers=headers)
         playlists = playlists_response.json()['items']
