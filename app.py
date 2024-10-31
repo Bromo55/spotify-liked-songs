@@ -27,9 +27,9 @@ auth_url = f"https://accounts.spotify.com/authorize?client_id={client_id}&respon
 st.markdown(f"[Iniciar Autenticación]({auth_url})", unsafe_allow_html=True)
 
 # Obtener el código de la URL si está presente
-query_params = st.experimental_get_query_params()
+query_params = st.query_params
 if 'code' in query_params:
-    code = query_params['code'][0]  # Obtener el código de autorización
+    code = query_params['code']  # Obtener el código de autorización
     st.success(f"Código de autorización recibido: {code}")
 
     # Intercambiar el código por un token de acceso
@@ -149,7 +149,7 @@ if 'code' in query_params:
                     requests.post(
                         f"https://api.spotify.com/v1/playlists/{playlist_map[target_playlist.lower()]}/tracks",
                         headers=headers,
-                        json={"uris": [f"spotify:track:{track_id}]"}
+                        json={"uris": [f"spotify:track:{track_id}"]}
                     )
                     st.write(f'Canción "{track_name}" de {artist_name} añadida a la lista "{target_playlist}".')
                 else:
