@@ -42,13 +42,14 @@ if 'code' in query_params:
         "client_secret": client_secret,
     }
 
+    st.success(f"Token data: {token_data}")
     response = requests.post(token_url, data=token_data)
     response_data = response.json()
 
     if 'access_token' in response_data:
         access_token = response_data['access_token']
         st.success("Acceso autorizado. ¡Listo para hacer llamadas a la API!")
-
+        st.success(f"Access token: {access_token}")
         # Obtener el usuario actual
         user_url = "https://api.spotify.com/v1/me"
         headers = {"Authorization": f"Bearer {access_token}"}
