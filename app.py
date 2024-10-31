@@ -54,6 +54,7 @@ if 'code' in query_params:
         if user_response.status_code == 200:
             current_user = user_response.json()
             st.success(f'oki bro {current_user["display_name"]} vamos a ello')
+
             # Mostrar la imagen del usuario
             if current_user['images']:
                 user_image_url = current_user['images'][0]['url']  # Obtener la primera imagen
@@ -62,15 +63,34 @@ if 'code' in query_params:
                 st.write("No hay imagen de perfil disponible.")
 
             # Obtener las canciones marcadas como 'Me gusta'
-            results = requests.get("https://api.spotify.com/v1/me/tracks", headers=headers)
-            if results.status_code != 200:
-                st.error(f"Error al obtener canciones: {results.status_code} - {results.json()}")
+            all_tracks = []
+            limit = 50  # Puedes obtener un máximo de 50 canciones por solicitud
+            offset = 0  # Comenzar desde el primer elemento
+
+            while True:
+                results = requests.get(f"https://api.spotify.com/v1/me/tracks?limit={limit}&offset={offset}", headers=headers)
+                data = results.json()
+
+                # Añadir los elementos a la lista
+                all_tracks.extend(data.get('items', []))
+
+                # Verificar si hay más canciones para paginar
+                if len(data['items']) < limit:
+                    break  # Salir del bucle si no hay más canciones
+                offset += limit  # Aumentar el offset para la siguiente solicitud
+
+            if all_tracks:
+                first_track = all_tracks[0]['track']  # Acceder a la primera canción
+                track_name = first_track['name']       # Obtener el nombre de la canción
+                artist_name = first_track['artists'][0]['name']  # Obtener el nombre del artista
+                st.write(f'Primera canción: {track_name} de {artist_name}')
             else:
-                all_tracks = results.json().get('items', [])
+                st.write("No hay canciones guardadas.")
 
             # Obtener todas las listas de reproducción del usuario
             playlists = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
             playlist_map = {playlist['name'].lower(): playlist['id'] for playlist in playlists.json().get('items', [])}
+
 
             # Definir las listas de reproducción que necesitas
             required_playlists = ['dale weon', 'toy o no toy', 'canto do dusha', 'rapapolvo', 'k lo k', 'blackhole']
