@@ -38,6 +38,11 @@ if st.button('Generar listas de reproducción'):
             redirect_uri=redirect_uri,
             scope='playlist-modify-public user-library-read'
         ))
+        # Aquí deberías intentar obtener el usuario actual
+        st.success(f'Vamos a: {redirect_uri}')
+
+        current_user = sp.current_user()
+        st.success(f'Usuario actual: {current_user["display_name"]}')
         if sp:
             st.success("Auth success")
             st.write(sp.current_user())  # Imprimir el contenido del usuario actual
