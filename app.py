@@ -40,6 +40,7 @@ if st.button('Generar listas de reproducción'):
         ))
         if sp:
             st.success("Auth success")
+            st.write(sp.current_user())  # Imprimir el contenido del usuario actual
             current_user = sp.current_user()
             if current_user:
                 st.write(f'Bienvenido, {current_user["display_name"]}!')
